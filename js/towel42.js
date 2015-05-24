@@ -13,11 +13,27 @@ var initialScore = 43, score, totalScore;
 var manPrevAction = 'nothing';
 var thisLine = 0;
 var ANIM_FRAME_RATE = 20;
-var debug = false, scoreDebug = false, beastAnimDebug = false, manSoundDebug = true;
+var debug = false, scoreDebug = false, beastAnimDebug = false, manSoundDebug = true, soundDebug = true;
 
 var towelSizeX = 40, towelSizeY = 70;
 var towelState = "noTowel";  // refers to 'towel in the wild' not towel on player's head
 var playerSound = null;
+
+function myLoadAudio(a,b) {
+    var retVal = null;
+    
+    try {
+        retVal = game.load.audio(a,b);
+    }
+    catch(err) {
+        console.log('load audio ' + a + ' exception: ' + err);
+    }
+    if (retVal == null) {
+        console.log('load audio ' + a + ' returned null');
+    }
+    return retVal;
+}
+
 function preload() {
     game.load.image('bg', 'assets2/background.png');
     game.load.image('splash_bg', 'assets2/splash_background.png');
@@ -33,28 +49,44 @@ function preload() {
     game.load.spritesheet('ground_bottom', 'assets2/platform_bottom.png', 365, 4);
     game.load.spritesheet('end_game', 'assets2/end_game.png', 800, 625);
 
+    var res;
+    res = myLoadAudio('manRun', ['sound/Survive_Man_Run.mp3', 'sound/Survive_Man_Run.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('manJump', ['sound/Survive_Man_Jump.mp3', 'sound/Survive_Man_Jump.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('manFall', ['sound/Survive_Man_Fall.mp3', 'sound/Survive_Man_Fall.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('manLand', ['sound/Survive_Man_Land.mp3', 'sound/Survive_Man_Land.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('grabClock', ['sound/Survive_Man_Grab_Clock.mp3', 'sound/Survive_Man_Grab_Clock.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('grabTowel', ['sound/Survive_Man_Grab_Towel.mp3', 'sound/Survive_Man_Grab_Towel.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
 
-    game.load.audio('manRun', ['sound/Survive_Man_Run.ogg', 'sound/Survive_Man_Run.mp3']);
-    game.load.audio('manJump', ['sound/Survive_Man_Jump.ogg', 'sound/Survive_Man_Jump.mp3']);
-    game.load.audio('manFall', ['sound/Survive_Man_Fall.ogg', 'sound/Survive_Man_Fall.mp3']);
-    game.load.audio('manLand', ['sound/Survive_Man_Land.ogg', 'sound/Survive_Man_Land.mp3']);
-    game.load.audio('grabClock', ['sound/Survive_Man_Grab_Clock.ogg', 'sound/Survive_Man_Grab_Clock.mp3']);
-    game.load.audio('grabTowel', ['sound/Survive_Man_Grab_Towel.ogg', 'sound/Survive_Man_Grab_Towel.mp3']);
+    res = myLoadAudio('monsterRun', ['sound/Survive_Monster_run.mp3', 'sound/Survive_Monster_run.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
 
-    game.load.audio('monsterRun', ['sound/Survive_Monster_run.ogg', 'sound/Survive_Monster_run.mp3']);
+    res = myLoadAudio('monsterConfused', ['sound/Survive_Monster_Confused.mp3', 'sound/Survive_Monster_Confused.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('monsterEat', ['sound/Survive_Monster_Eat.mp3', 'sound/Survive_Monster_Eat.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('monsterFly', ['sound/Survive_Monster_Fly.mp3', 'sound/Survive_Monster_Fly.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('monsterIdle', ['sound/Survive_Monster_Idle.mp3', 'sound/Survive_Monster_Idle.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
 
-    game.load.audio('monsterConfused', ['sound/Survive_Monster_Confused.ogg', 'sound/Survive_Monster_Confused.mp3']);
-    game.load.audio('monsterEat', ['sound/Survive_Monster_Eat.ogg', 'sound/Survive_Monster_Eat.mp3']);
-    game.load.audio('monsterFly', ['sound/Survive_Monster_Fly.ogg', 'sound/Survive_Monster_Fly.mp3']);
-    game.load.audio('monsterIdle', ['sound/Survive_Monster_Idle.ogg', 'sound/Survive_Monster_Idle.mp3']);
+    res = myLoadAudio('towelAppear', ['sound/Survive_Towel_Appear.mp3', 'sound/Survive_Towel_Appear.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('towelVanish', ['sound/Survive_Towel_Vanish.mp3', 'sound/Survive_Towel_Vanish.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
 
-    game.load.audio('towelAppear', ['sound/Survive_Towel_Appear.ogg', 'sound/Survive_Towel_Appear.mp3']);
-    game.load.audio('towelVanish', ['sound/Survive_Towel_Vanish.ogg', 'sound/Survive_Towel_Vanish.mp3']);
-
-    // game.load.audio('clockAppear', ['sound/Survive_Clock_Appear.ogg', 'sound/Survive_Clock_Appear.mp3']);
-    game.load.audio('gameOver', ['sound/Survive_Game_Over.ogg', 'sound/Survive_Game_Over.mp3']);
-    game.load.audio('gameTheme', ['sound/Survive_Game_Theme.ogg', 'sound/Survive_Game_Theme.mp3']);
-    game.load.audio('splash', ['sound/Survive_Splash.ogg', 'sound/Survive_Splash.mp3']);
+    // res = myLoadAudio('clockAppear', ['sound/Survive_Clock_Appear.mp3', 'sound/Survive_Clock_Appear.ogg']);
+    res = myLoadAudio('gameOver', ['sound/Survive_Game_Over.mp3', 'sound/Survive_Game_Over.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('gameTheme', ['sound/Survive_Game_Theme.mp3', 'sound/Survive_Game_Theme.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
+    res = myLoadAudio('splash', ['sound/Survive_Splash.mp3', 'sound/Survive_Splash.ogg']);
+    if (soundDebug) console.log('myLoadAudio : ' + res);
 }
 
 var gameOver, manFall, grabClock, grabTowel, manJump, manLand, manRun, monsterConfused, monsterEat, monsterRun, monsterFly, monsterIdle, towelAppear, towelVanish, /*clockAppear,*/ gameTheme, splash;
@@ -151,7 +183,7 @@ function create() {
 
     timer = game.time.create(false);
 
-    splash = game.add.audio('splash');
+    splash = myAddAudio('splash');
     /* ADDED THIS */
 
     splash_bg = this.add.sprite(0, 0, 'splash_bg');
@@ -184,25 +216,39 @@ function create() {
     console.log('end of create()');
 }
 
+function myAddAudio(x) {
+    var retVal = null;
+    try {
+        retVal = game.add.audio(x);
+    }
+    catch(err) {
+        console.log('loading of ' + x + 'error:' + err);
+    }
+    if (retVal == null) {
+        console.log('loading of ' + x + ' returned null');
+    }
+    return retVal;
+}
+
 function recreate() {
     splash.loopFull();
 
-    manRun = game.add.audio('manRun');
-    manFall = game.add.audio('manFall');
-    manJump = game.add.audio('manJump');
-    manLand = game.add.audio('manLand');
-    gameOver = game.add.audio('gameOver');
-    gameTheme = game.add.audio('gameTheme');
-    grabClock = game.add.audio('grabClock');
-    grabTowel = game.add.audio('grabTowel');    
-    monsterConfused = game.add.audio('monsterConfused');
-    monsterEat = game.add.audio('monsterEat');
-    monsterRun = game.add.audio('monsterRun');
-    monsterFly = game.add.audio('monsterFly');
-    monsterIdle = game.add.audio('monsterIdle');
-    towelAppear = game.add.audio('towelAppear');
-    towelVanish = game.add.audio('towelVanish');
-    clockAppear= game.add.audio('clockAppear');
+    manRun = myAddAudio('manRun');
+    manFall = myAddAudio('manFall');
+    manJump = myAddAudio('manJump');
+    manLand = myAddAudio('manLand');
+    gameOver = myAddAudio('gameOver');
+    gameTheme = myAddAudio('gameTheme');
+    grabClock = myAddAudio('grabClock');
+    grabTowel = myAddAudio('grabTowel');    
+    monsterConfused = myAddAudio('monsterConfused');
+    monsterEat = myAddAudio('monsterEat');
+    monsterRun = myAddAudio('monsterRun');
+    monsterFly = myAddAudio('monsterFly');
+    monsterIdle = myAddAudio('monsterIdle');
+    towelAppear = myAddAudio('towelAppear');
+    towelVanish = myAddAudio('towelVanish');
+//    clockAppear= game.add.audio('clockAppear');
 
     sounds = [gameOver, manFall, grabClock, grabTowel, manJump, manLand, manRun, monsterConfused, monsterEat, monsterRun, monsterFly, monsterIdle, towelAppear, towelVanish, /*clockAppear,*/ gameTheme];
     
